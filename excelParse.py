@@ -60,15 +60,20 @@ def locate_port(passed_string):
 
 # find bay in string for CO. Bay_begin = where beginning of bay in string
 def locate_bay(passed_string):
-    if passed_string[8] == " ":
-        bay_begin = 21
-    else:
-        bay_begin = 22
-    return_bay = passed_string[bay_begin:bay_begin + 6]
+    if len(passed_string) < 11:
+        print("too short")
+        return_bay = ""
 
-    if return_bay[-1] == " ":
-        bay_begin -= 1
+    else:
+        if passed_string[8] == " ":
+            bay_begin = 21
+        else:
+            bay_begin = 22
         return_bay = passed_string[bay_begin:bay_begin + 6]
+
+        if return_bay[-1] == " ":
+            bay_begin -= 1
+            return_bay = passed_string[bay_begin:bay_begin + 6]
 
     return return_bay
 
@@ -206,8 +211,9 @@ def get_clli():
 
 # locate ports and place into spreadsheet
 def get_port():
+    counter = 0
     for val in range(int(output_curr_row), int(output_curr_row + 4)):
-        if val < 3:
+        if counter < 2:
             # first half of a-pair port
             port_info = sheet['H' + str((curr_row - final_pair_count))].value
             a_first_port = locate_port(port_info)
@@ -228,6 +234,7 @@ def get_port():
             z_port = z_first_port + " - " + z_second_port
             newSheet['U' + str(val)].value = z_port
 
+            counter += 1
         else:
             # first half of a-pair port
             port_info = sheet['H' + str((curr_row - int(final_pair_count / 2) - 1))].value
@@ -301,8 +308,20 @@ def get_shelf():
 
 # place cid
 def get_cid():
+    counter = 0
+    sys_num = ""
+    cid = sheet['F' + str((curr_row - final_pair_count))].value
+    for char in range(0, len(cid)):
+        if cid[char].isdigit() and counter < 3:
+            sys_num += cid[char]
+            counter += 1
+    sys_num = "Sys " + sys_num
     for val in range(int(output_curr_row), int(output_curr_row + 4)):
-        cid = sheet['F' + str((curr_row - final_pair_count))].value
+        if len(sys_num) != 7:
+            logs.write("Check Sys number for this pair.")
+        else:
+            newSheet['P' + str(val)].value = sys_num
+
 
 
 # take user input for file name
@@ -311,8 +330,8 @@ file_name = input("Enter file name (with extension i.e. 'file.xlsx'): ")
 # load excel sheet. Throw error if it can not be opened
 print("Opening passed excel file...")
 # ************************************BE SURE TO COME BACK TO THIS***********************************
-if load_workbook("Mississippi.xlsx"):
-    wb = load_workbook("Mississippi.xlsx")
+if load_workbook("Madison Ring 1 Revision.xlsx"):
+    wb = load_workbook("Madison Ring 1 Revision.xlsx")
 # ************************************BE SURE TO COME BACK TO THIS***********************************
     sheet = wb.active
     print("Excel file opened.")
@@ -349,6 +368,8 @@ output_row = 0
 output_curr_row = 1
 # check if CLLI code is correct
 clli_check = False
+# check if sys num is correct
+
 # variables to hold co clli code
 co_clli = None
 incorrect_co_clli = None
