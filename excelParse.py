@@ -125,6 +125,7 @@ def get_clli():
     missing_clli = []
     for val in range(int(output_curr_row), int(output_curr_row + 4)):
         newSheet['B' + str(val)].value = correct_co_clli
+        # first location from CO
         if counter < 2:
             clli_info = sheet['H' + str((curr_row - final_pair_count + counter + 1))].value
             clli = locate_clli(clli_info)
@@ -137,6 +138,7 @@ def get_clli():
                     clli = fix_clli(clli)
                 newSheet['Q' + str(val)].value = clli
             counter += 1
+        # last location from CO
         else:
             clli_info = sheet['H' + str((curr_row - 3 + increment))].value
             clli = locate_clli(clli_info)
@@ -209,7 +211,7 @@ def get_clli():
         logs.write("Line: {} in the old excel sheet contains a faulty CLLI/is missing a CLLI.\n".format(vals))
 
 
-# locate ports and place into spreadsheet
+# locate ports and place into spreadsheet`
 def get_port():
     counter = 0
     for val in range(int(output_curr_row), int(output_curr_row + 4)):
@@ -308,20 +310,34 @@ def get_shelf():
 
 # place cid
 def get_cid():
+    output_bool = False
     counter = 0
     sys_num = ""
     cid = sheet['F' + str((curr_row - final_pair_count))].value
-    for char in range(0, len(cid)):
-        if cid[char].isdigit() and counter < 3:
+    if isinstance(cid, int):
+        cid = str(cid)
+        print(type(cid))
+        for char in range(0, 3):
             sys_num += cid[char]
-            counter += 1
+    else:
+        for char in range(0, len(cid)):
+            if cid[char].isdigit() and counter < 3:
+                sys_num += cid[char]
+                counter += 1
+                if len(cid) > 3 and cid[char - counter] == "L" and cid[char + 1].isdigit() and counter == 3:
+                    sys_num = sys_num[1:] + cid[char + 1]
     sys_num = "Sys " + sys_num
     for val in range(int(output_curr_row), int(output_curr_row + 4)):
-        if len(sys_num) != 7:
-            logs.write("Check Sys number for this pair.")
+        if len(sys_num) != 7 and output_bool == False:
+            logs.write("Check Sys number for this pair.\n")
+            output_bool = True
         else:
             newSheet['P' + str(val)].value = sys_num
 
+
+# find missing cllis on CBL Sheet
+def get_missing_clli():
+    x = 1
 
 
 # take user input for file name
@@ -330,8 +346,8 @@ file_name = input("Enter file name (with extension i.e. 'file.xlsx'): ")
 # load excel sheet. Throw error if it can not be opened
 print("Opening passed excel file...")
 # ************************************BE SURE TO COME BACK TO THIS***********************************
-if load_workbook("Madison Ring 1 Revision.xlsx"):
-    wb = load_workbook("Madison Ring 1 Revision.xlsx")
+if load_workbook("Madison Ring 2.xlsx"):
+    wb = load_workbook("Madison Ring 2.xlsx")
 # ************************************BE SURE TO COME BACK TO THIS***********************************
     sheet = wb.active
     print("Excel file opened.")
@@ -460,8 +476,3 @@ print("Output excel closed.")
 newBook.save(name)
 print("The outputted excel sheet and logs can now be found in the folder where your '{}' is located.\n"
       .format(file_name))
-
-# 7 byte CLLI
-# wrong ports
-# shelves
-# cable names
