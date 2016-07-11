@@ -1,0 +1,19 @@
+from openpyxl import Workbook
+from openpyxl.compat import range
+from openpyxl.styles import Font, Fill
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+
+file_name = input("Enter file name (with extension i.e. 'file.xlsx'): ")
+if load_workbook("BULK TIRKS F1 INPUT FORM.xlsx"):
+    wb = load_workbook("BULK TIRKS F1 INPUT FORM.xlsx")
+    sheet = wb.active
+
+name = "TIRKS F1.xlsx"
+
+curr_row = 3
+while curr_row < sheet.max_row:
+    sheet['P' + str(curr_row)] = str(sheet['P' + str(curr_row)].value) + "/" + str(sheet['B' + str(curr_row)].value) + "/" + str(sheet['Q' + str(curr_row)].value)
+    curr_row += 1
+
+wb.save(name)
