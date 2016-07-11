@@ -332,7 +332,7 @@ def get_cid():
             logs.write("Check Sys number for this pair.\n")
             output_bool = True
         else:
-            newSheet['P' + str(val)].value = sys_num
+            newSheet['P' + str(val)].value = sys_num + "/" + str(newSheet['B' + str(val)].value) + "/" + str(newSheet['Q' + str(val)].value)
 
 
 # find missing cllis on CBL Sheet
@@ -346,8 +346,8 @@ file_name = input("Enter file name (with extension i.e. 'file.xlsx'): ")
 # load excel sheet. Throw error if it can not be opened
 print("Opening passed excel file...")
 # ************************************BE SURE TO COME BACK TO THIS***********************************
-if load_workbook("Madison Ring 2.xlsx"):
-    wb = load_workbook("Madison Ring 2.xlsx")
+if load_workbook("Shreveport Ring 5.xlsx"):
+    wb = load_workbook("Shreveport Ring 5.xlsx")
 # ************************************BE SURE TO COME BACK TO THIS***********************************
     sheet = wb.active
     print("Excel file opened.")
@@ -375,7 +375,6 @@ newBook = Workbook()
 name = "TIRKS F1 - " + file_name[:index] + ".xlsx"
 newSheet = newBook.active
 newSheet.title = file_name
-newSheet.font = Font(name='Arial', size=8)
 
 # counter for current row in old excel sheet
 curr_row = 1
@@ -476,3 +475,4 @@ print("Output excel closed.")
 newBook.save(name)
 print("The outputted excel sheet and logs can now be found in the folder where your '{}' is located.\n"
       .format(file_name))
+
