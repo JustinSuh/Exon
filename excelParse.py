@@ -33,6 +33,9 @@ def check_status():
 # find CLLI codes. Location holds index of where clli begins
 def locate_clli(passed_string):
     # check for multi-digit ports
+    if len(passed_string) < 10:
+        return passed_string
+
     if passed_string[8] == " ":
         location = 12
     else:
@@ -49,6 +52,9 @@ def locate_clli(passed_string):
 def locate_port(passed_string):
     port_begin = 7
     # check for multi-digit ports
+    if len(passed_string) < 9:
+        return ""
+
     if passed_string[8] == " ":
         location = 8
     else:
@@ -60,10 +66,8 @@ def locate_port(passed_string):
 
 # find bay in string for CO. Bay_begin = where beginning of bay in string
 def locate_bay(passed_string):
-    if len(passed_string) < 11:
-        print("too short")
+    if len(passed_string) < 11 or passed_string[1] == "f":
         return_bay = ""
-
     else:
         if passed_string[8] == " ":
             bay_begin = 21
@@ -74,6 +78,15 @@ def locate_bay(passed_string):
         if return_bay[-1] == " ":
             bay_begin -= 1
             return_bay = passed_string[bay_begin:bay_begin + 6]
+
+        if return_bay[0] == "R":
+            bay_begin += 2
+            if return_bay[2] == " ":
+                bay_begin += 1
+            return_bay = passed_string[bay_begin:bay_begin + 6]
+
+        if return_bay[0] == "0":
+            return_bay = passed_string[bay_begin:bay_begin + 7]
 
     return return_bay
 
@@ -106,6 +119,16 @@ def get_constants():
             count = 0
 
 
+
+
+#        newSheet['X' + str(val)].value = "12"
+#    increment = 1
+#    for val in range(int(output_curr_row), int(output_curr_row + final_pair_count / 2)):
+#        newSheet['W' + str(val)].value = sheet['G' + str(curr_row - final_pair_count + increment - 1)].value
+#        increment += 1
+
+
+
 # fix non 8 byte clli
 def fix_clli(passed_clli):
     clli_begin = correct_co_clli[:-2]
@@ -129,27 +152,22 @@ def get_clli():
         if counter < 2:
             clli_info = sheet['H' + str((curr_row - final_pair_count + counter + 1))].value
             clli = locate_clli(clli_info)
-            if clli[0:1] != correct_co_clli[0:1]:
-                    missing_clli.append((curr_row - final_pair_count + counter + 1))
-            else:
-                if len(clli) != 8:
-                    logs.write("Line {}: ".format(curr_row - final_pair_count + counter + 1))
-                    logs.write("'{}' is not an 8 byte CLLI. Attempting to fix...\n".format(clli))
-                    clli = fix_clli(clli)
-                newSheet['Q' + str(val)].value = clli
+            if len(clli) != 8:
+                logs.write("Line {}: ".format(curr_row - final_pair_count + counter + 1))
+                logs.write("'{}' is not an 8 byte CLLI. Attempting to fix...\n".format(clli))
+                clli = fix_clli(clli)
+            newSheet['Q' + str(val)].value = clli
             counter += 1
         # last location from CO
         else:
             clli_info = sheet['H' + str((curr_row - 3 + increment))].value
             clli = locate_clli(clli_info)
-            if clli[0:1] != correct_co_clli[0:1]:
-                    missing_clli.append((curr_row - 3 + increment))
-            else:
-                if len(clli) != 8:
-                    logs.write("Line {}: ".format(curr_row - 3 + increment))
-                    logs.write("'{}' is not an 8 byte CLLI. Attempting to fix...\n".format(clli))
-                    clli = fix_clli(clli)
-                newSheet['Q' + str(val)].value = clli
+
+            if len(clli) != 8:
+                logs.write("Line {}: ".format(curr_row - 3 + increment))
+                logs.write("'{}' is not an 8 byte CLLI. Attempting to fix...\n".format(clli))
+                clli = fix_clli(clli)
+            newSheet['Q' + str(val)].value = clli
             increment += 1
 
     if final_pair_count > 8:
@@ -161,50 +179,38 @@ def get_clli():
                 # first half of a-pair clli
                 clli_info = sheet['H' + str((curr_row - final_pair_count + 1) + iterator)].value
                 clli = locate_clli(clli_info)
-                if clli[0:1] != correct_co_clli[0:1]:
-                    missing_clli.append(int((curr_row - final_pair_count + 1) + iterator))
-                else:
-                    if len(clli) != 8:
-                        logs.write("Line {}: ".format((curr_row - final_pair_count + 1) + iterator))
-                        logs.write("'{}' is not an 8 byte CLLI. Attempting to fix...\n".format(clli))
-                        clli = fix_clli(clli)
-                    newSheet['B' + str(val)].value = clli
+                if len(clli) != 8:
+                    logs.write("Line {}: ".format((curr_row - final_pair_count + 1) + iterator))
+                    logs.write("'{}' is not an 8 byte CLLI.\n".format(clli))
+                newSheet['B' + str(val)].value = clli
 
                 # second half of a-pair clli
                 clli_info = sheet['H' + str((curr_row - int(final_pair_count / 2) + 1) + iterator)].value
                 clli = locate_clli(clli_info)
-                if clli[0:1] != correct_co_clli[0:1]:
-                    missing_clli.append(int((curr_row - int(final_pair_count / 2) + 1) + iterator))
-                else:
-                    if len(clli) != 8:
-                        logs.write("Line {}: ".format((curr_row - int(final_pair_count / 2) + 1) + iterator))
-                        logs.write("'{}' is not an 8 byte CLLI. Attempting to fix...\n".format(clli))
-                        clli = fix_clli(clli)
-                    newSheet['B' + str(val + 1)].value = clli
+                if len(clli) != 8:
+                    logs.write("Line {}: ".format((curr_row - int(final_pair_count / 2) + 1) + iterator))
+                    logs.write("'{}' is not an 8 byte CLLI.\n".format(clli))
+                    clli = fix_clli(clli)
+                newSheet['B' + str(val + 1)].value = clli
 
                 # first half of z-pair clli
                 clli_info = sheet['H' + str((curr_row - final_pair_count + 1) + iterator + 3)].value
                 clli = locate_clli(clli_info)
-                if clli[0:1] != correct_co_clli[0:1]:
-                    missing_clli.append(int((curr_row - final_pair_count + 1) + iterator + 3))
-                else:
-                    if len(clli) != 8:
-                        logs.write("Line {}: ".format((curr_row - final_pair_count + 1) + iterator + 3))
-                        logs.write("'{}' is not an 8 byte CLLI. Attempting to fix...\n".format(clli))
-                        clli = fix_clli(clli)
-                    newSheet['Q' + str(val)].value = clli
+                if len(clli) != 8:
+                    logs.write("Line {}: ".format((curr_row - final_pair_count + 1) + iterator + 3))
+                    logs.write("'{}' is not an 8 byte CLLI. Attempting to fix...\n".format(clli))
+                    clli = fix_clli(clli)
+                newSheet['Q' + str(val)].value = clli
 
                 # second half of z-pair clli
                 clli_info = sheet['H' + str((curr_row - int(final_pair_count / 2) + 1) + iterator + 3)].value
                 clli = locate_clli(clli_info)
-                if clli[0:1] != correct_co_clli[0:1]:
-                    missing_clli.append(int((curr_row - int(final_pair_count / 2) + 1) + iterator + 3))
-                else:
-                    if len(clli) != 8:
-                        logs.write("Line {}: ".format((curr_row - int(final_pair_count / 2) + 1) + iterator + 3))
-                        logs.write("'{}' is not an 8 byte CLLI. Attempting to fix...\n".format(clli))
-                        clli = fix_clli(clli)
-                    newSheet['Q' + str(val + 1)].value = clli
+                if len(clli) != 8:
+                    logs.write("Line {}: ".format((curr_row - int(final_pair_count / 2) + 1) + iterator + 3))
+                    logs.write("'{}' is not an 8 byte CLLI. Attempting to fix...\n".format(clli))
+                    clli = fix_clli(clli)
+                newSheet['Q' + str(val + 1)].value = clli
+
                 iterator += 2
     missing_clli = sorted(set(missing_clli))
     for vals in missing_clli:
@@ -303,11 +309,6 @@ def get_bay():
             newSheet['D' + str(val)].value = bay
 
 
-# place shelves for locations
-def get_shelf():
-    x = 1
-
-
 # place cid
 def get_cid():
     output_bool = False
@@ -327,12 +328,11 @@ def get_cid():
                 if len(cid) > 3 and cid[char - counter] == "L" and cid[char + 1].isdigit() and counter == 3:
                     sys_num = sys_num[1:] + cid[char + 1]
     sys_num = "Sys " + sys_num
-    for val in range(int(output_curr_row), int(output_curr_row + 4)):
+    for val in range(int(output_curr_row), int(output_curr_row + (final_pair_count / 2))):
         if len(sys_num) != 7 and output_bool == False:
             logs.write("Check Sys number for this pair.\n")
             output_bool = True
-        else:
-            newSheet['P' + str(val)].value = sys_num + "/" + str(newSheet['B' + str(val)].value) + "/" + str(newSheet['Q' + str(val)].value)
+        newSheet['P' + str(val)].value = sys_num
 
 
 # find missing cllis on CBL Sheet
@@ -345,10 +345,8 @@ file_name = input("Enter file name (with extension i.e. 'file.xlsx'): ")
 
 # load excel sheet. Throw error if it can not be opened
 print("Opening passed excel file...")
-# ************************************BE SURE TO COME BACK TO THIS***********************************
-if load_workbook("Shreveport Ring 5.xlsx"):
-    wb = load_workbook("Shreveport Ring 5.xlsx")
-# ************************************BE SURE TO COME BACK TO THIS***********************************
+if load_workbook(file_name):
+    wb = load_workbook(file_name)
     sheet = wb.active
     print("Excel file opened.")
 else:
@@ -417,7 +415,8 @@ while curr_row < sheet.max_row:
         # check even amount of pairs
         if second_pair_count % 2 != 0:
             logs.write(
-                "{} contains an ODD amount of points.\n".format(sheet['B' + str(curr_row - final_pair_count / 2)].value)
+                "{} contains an ODD amount of points.\n".format(sheet['B' + str(curr_row - int(final_pair_count / 2))]
+                                                                .value)
             )
         # check if ports numbers correlate
         if first_pair_count != second_pair_count:
@@ -427,9 +426,6 @@ while curr_row < sheet.max_row:
                     sheet['B' + str(int(curr_row - 1))].value
                 )
             )
-            # ************************************BE SURE TO COME BACK TO THIS***********************************
-
-            # ************************************BE SURE TO COME BACK TO THIS***********************************
 
         else:
             logs.write(
@@ -459,7 +455,6 @@ while curr_row < sheet.max_row:
             get_clli()
             get_port()
             get_bay()
-            get_shelf()
             get_cid()
 
             output_curr_row = output_row + 1
